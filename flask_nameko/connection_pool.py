@@ -1,7 +1,13 @@
 from datetime import datetime, timedelta
-from Queue import Queue, Empty
 from threading import Lock
+
+try:
+    from Queue import Queue, Empty
+except ImportError:
+    from queue import Queue, Empty
+
 from .errors import ClientUnavailableError
+
 
 class Connection(object):
     def __init__(self, connection):
@@ -13,6 +19,7 @@ class Connection(object):
 
     def __getattr__(self, attr):
         return getattr(self.connection, attr)
+
 
 class ConnectionPool(object):
     def __init__(self, get_connection, initial_connections=2, max_connections=8, recycle=None):

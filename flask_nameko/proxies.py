@@ -1,11 +1,14 @@
 import re
+
 from flask import g
 from nameko.standalone.rpc import ClusterRpcProxy
+
 from .connection_pool import ConnectionPool
 from .errors import (
     BadConfigurationError,
     ClusterNotConfiguredError
 )
+
 
 class PooledClusterRpcProxy(object):
 
@@ -37,28 +40,32 @@ class PooledClusterRpcProxy(object):
 
     def get_connection(self):
         if not self._pool:
-            raise ClusterNotConfiguredError("Please configure your cluster beore requesting a connection.")
+            raise ClusterNotConfiguredError("Please configure your cluster before requesting a connection.")
         return self._pool.get_connection()
 
     def release_connection(self, connection):
         return self._pool.release_connection(connection)
 
+
 class LazyServiceProxy(object):
     def __init__(self, get_connection, service):
         self.get_connection = get_connection
         self.service = service
+
     def __getattr__(self, name):
         return getattr(getattr(self.get_connection(), self.service), name)
 
+
 class FlaskPooledClusterRpcProxy(PooledClusterRpcProxy):
     def __init__(self, app=None, connect_on_method_call=True):
+        super().__init__()
         self._connect_on_method_call = connect_on_method_call
         if app:
             self.init_app(app)
 
     def init_app(self, app):
         config = dict()
-        for key, val in app.config.iteritems():
+        for key, val in app.config.items():
             match = re.match(r"NAMEKO\_(?P<name>.*)", key)
             if match:
                 config[match.group('name')] = val
@@ -91,4 +98,3 @@ class FlaskPooledClusterRpcProxy(PooledClusterRpcProxy):
 
     def __getitem__(self, name):
         return self._get_service(name)
-

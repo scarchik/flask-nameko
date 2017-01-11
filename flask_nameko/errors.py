@@ -1,6 +1,14 @@
-class BadConfigurationError(Exception):
+class FlaskNamekoException(Exception):
     pass
-class ClientUnavailableError(Exception):
+
+
+class BadConfigurationError(FlaskNamekoException):
     pass
-class ClusterNotConfiguredError(Exception):
+
+
+class ClientUnavailableError(FlaskNamekoException):
+    pass
+
+
+class ClusterNotConfiguredError(FlaskNamekoException):
     pass
