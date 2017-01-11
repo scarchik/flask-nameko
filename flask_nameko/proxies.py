@@ -15,7 +15,8 @@ class PooledClusterRpcProxy(object):
     _pool = None
     _config = None
 
-    def __init__(self, config=None):
+    def __init__(self, config=None, context_data=None):
+        self.context_data = context_data
         if config:
             self.configure(config)
 
@@ -34,7 +35,8 @@ class PooledClusterRpcProxy(object):
     def _get_nameko_connection(self):
         proxy = ClusterRpcProxy(
             self._config,
-            timeout=self._config.get('RPC_TIMEOUT', None)
+            timeout=self._config.get('RPC_TIMEOUT', None),
+            context_data=self.context_data
         )
         return proxy.start()
 
@@ -57,8 +59,8 @@ class LazyServiceProxy(object):
 
 
 class FlaskPooledClusterRpcProxy(PooledClusterRpcProxy):
-    def __init__(self, app=None, connect_on_method_call=True):
-        super().__init__()
+    def __init__(self, app=None, context_data=None, connect_on_method_call=True):
+        super().__init__(context_data=context_data)
         self._connect_on_method_call = connect_on_method_call
         if app:
             self.init_app(app)
