@@ -15,10 +15,11 @@ class PooledClusterRpcProxy(object):
     _pool = None
     _config = None
 
-    def __init__(self, config=None, context_data=None):
-        self.context_data = context_data
+    def __init__(self, config=None):
         if config:
             self.configure(config)
+
+        self.context_data = None
 
     def configure(self, config):
         if not config.get('AMQP_URI'):
@@ -60,17 +61,19 @@ class LazyServiceProxy(object):
 
 class FlaskPooledClusterRpcProxy(PooledClusterRpcProxy):
     def __init__(self, app=None, context_data=None, connect_on_method_call=True):
-        super().__init__(context_data=context_data)
+        super().__init__()
         self._connect_on_method_call = connect_on_method_call
         if app:
-            self.init_app(app)
+            self.init_app(app, context_data)
 
-    def init_app(self, app):
+    def init_app(self, app, context_data=None):
         config = dict()
         for key, val in app.config.items():
             match = re.match(r"NAMEKO\_(?P<name>.*)", key)
             if match:
                 config[match.group('name')] = val
+
+        self.context_data = context_data
         self.configure(config)
 
         self._connect_on_method_call = config.get('NAMEKO_CONNECT_ON_METHOD_CALL', self._connect_on_method_call)
