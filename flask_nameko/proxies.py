@@ -2,6 +2,7 @@ import re
 
 from flask import g
 from nameko.standalone.rpc import ClusterRpcProxy
+from nameko.containers import WorkerContext
 
 from .connection_pool import ConnectionPool
 from .errors import (
@@ -20,6 +21,7 @@ class PooledClusterRpcProxy(object):
             self.configure(config)
 
         self.context_data = None
+        self.worker_cls = WorkerContext
 
     def configure(self, config):
         if not config.get('AMQP_URI'):
@@ -37,7 +39,8 @@ class PooledClusterRpcProxy(object):
         proxy = ClusterRpcProxy(
             self._config,
             timeout=self._config.get('RPC_TIMEOUT', None),
-            context_data=self.context_data
+            context_data=self.context_data,
+            worker_ctx_cls=self.worker_cls
         )
         return proxy.start()
 
@@ -60,19 +63,21 @@ class LazyServiceProxy(object):
 
 
 class FlaskPooledClusterRpcProxy(PooledClusterRpcProxy):
-    def __init__(self, app=None, context_data=None, connect_on_method_call=True):
+    def __init__(self, app=None, context_data=None, worker_cls=None, connect_on_method_call=True):
         super().__init__()
         self._connect_on_method_call = connect_on_method_call
         if app:
-            self.init_app(app, context_data)
+            self.init_app(app, context_data, worker_cls)
 
-    def init_app(self, app, context_data=None):
+    def init_app(self, app, context_data=None, worker_cls=None):
         config = dict()
         for key, val in app.config.items():
             match = re.match(r"NAMEKO\_(?P<name>.*)", key)
             if match:
                 config[match.group('name')] = val
 
+        if worker_cls:
+            self.worker_cls = worker_cls
         self.context_data = context_data
         self.configure(config)
 
