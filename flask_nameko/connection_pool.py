@@ -36,11 +36,11 @@ class ConnectionPool(object):
         self._get_connection = get_connection
         self._queue = Queue()
         self._current_connections = 0
-        self._max_connections = max_connections
-        self._recycle = timedelta(seconds=recycle) if recycle else False
+        self._max_connections = int(max_connections)
+        self._recycle = timedelta(seconds=int(recycle)) if recycle else False
         self._lock = Lock()
 
-        for x in range(initial_connections):
+        for x in range(int(initial_connections)):
             connection = self._make_connection()
             self._queue.put(connection)
 
