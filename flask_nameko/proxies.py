@@ -38,7 +38,7 @@ class PooledClusterRpcProxy(object):
     def _get_nameko_connection(self):
         proxy = ClusterRpcProxy(
             self._config,
-            timeout=self._config.get('RPC_TIMEOUT', None),
+            timeout=float(self._config.get('RPC_TIMEOUT')) if self._config.get('RPC_TIMEOUT') else None,
             context_data=self.context_data,
             worker_ctx_cls=self.worker_cls
         )
