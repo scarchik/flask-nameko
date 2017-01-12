@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 from mock import Mock, patch, ANY, MagicMock
-from nameko.standalone.rpc import ClusterRpcProxy
+from nameko.standalone.rpc import ClusterRpcProxy, WorkerContext
 from flask import Flask, g
 from flask_nameko import FlaskPooledClusterRpcProxy
 from flask_nameko.connection_pool import ConnectionPool
@@ -86,7 +86,7 @@ def test_timeout_is_passed_through_to_cluster(flask_app):
     flask_app.config.update(dict(NAMEKO_RPC_TIMEOUT=10))
     with patch('flask_nameko.proxies.ClusterRpcProxy', spec_set=ClusterRpcProxy) as mock:
         FlaskPooledClusterRpcProxy(flask_app, connect_on_method_call=True)
-        mock.assert_called_with(ANY, timeout=10)
+        mock.assert_called_with(ANY, timeout=10, context_data=None, worker_ctx_cls=WorkerContext)
 
 def test_pool_recycle_is_passed_through_to_cluster(flask_app):
     flask_app.config.update(dict(NAMEKO_POOL_RECYCLE=3600))
